@@ -5,24 +5,78 @@
 	</head>
 	<body>
 <?php 
+// extract($_POST);
+// if(isset($add))
+// {
+
+// 	if($details=="" || $sub=="" || $user=="")
+// 	{
+// 	$err="<font color='red'>fill all the fileds first</font>";	
+// 	}
+// 	else
+// 	{
+// 		foreach($user as $v)
+// 		{
+// mysqli_query($conn,"insert into notice values('','$v','$sub','$details',now())");
+// 		}
+		
+// 		$err="<font color='green'>Notice added Successfully</font>";	
+// 	}
+// }
+
+
+require './phpMailer/PHPMailer.php';
+require './phpMailer/SMTP.php';
+require './phpMailer/Exception.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+// require 'vendor/autoload.php';
+
 extract($_POST);
 if(isset($add))
 {
+    if($details=="" || $sub=="" || $user=="")
+    {
+        $err="<font color='red'>fill all the fields first</font>";    
+    }
+    else
+    {
+        $mail = new PHPMailer(true);
+        try {
+            //Server settings
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';  // Specify main and backup SMTP servers
+            $mail->SMTPAuth   = true;
+            $mail->Username   = 'umargarbasani60@gmail.com';  // SMTP username
+            $mail->Password   = 'apkzrrrhftoayscv';           // SMTP password
+            $mail->SMTPSecure = 'ssl';
+            $mail->Port       = '465';
 
-	if($details=="" || $sub=="" || $user=="")
-	{
-	$err="<font color='red'>fill all the fileds first</font>";	
-	}
-	else
-	{
-		foreach($user as $v)
-		{
-mysqli_query($conn,"insert into notice values('','$v','$sub','$details',now())");
-		}
-		
-		$err="<font color='green'>Notice added Successfully</font>";	
-	}
+            //Sender
+            $mail->setFrom('umargarbasani60@gmail.com', 'Notice Board Notification');
+
+            // Content
+            $mail->isHTML(true);
+            $mail->Subject = $sub;
+            $mail->Body    = $details;
+
+            foreach($user as $v)
+            {
+                mysqli_query($conn, "insert into notice values('', '$v', '$sub', '$details', now())");
+                $mail->addAddress($v);  // Add a recipient
+                $mail->send();
+                $mail->clearAddresses();
+            }
+            
+            $err="<font color='green'>Notice added and emailed Successfully</font>";    
+        } catch (Exception $e) {
+            $err = "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+        }
+    }
 }
+
 
 ?>
 <div class="header">
